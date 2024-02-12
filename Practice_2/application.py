@@ -1,12 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for
 import sys
 app = Flask(__name__)
+
 import database
 
 
 @app.route("/")
 def hello():
     return render_template("hello.html")
+
 
 @app.route("/apply")
 def apply():
@@ -43,6 +45,7 @@ def house_info(index):
     location = house_info["location"]
     cleaness = house_info["cleaness"]
     built_in = house_info["built_in"]    
+    print(house_info)
     photo = f"img/{index}.jpeg"
     
     return render_template("house_info.html", location=location, cleaness = cleaness, built_in = built_in, photo= photo)

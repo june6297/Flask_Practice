@@ -1,0 +1,9 @@
+{% block content %}
+  <h2>메시지 수정</h2>
+
+  <form method="post">
+    <textarea name="new_message" rows="4" cols="50">{{ post['message'] }}</textarea>
+    <br>
+    <input type="submit" value="수정 완료">
+  </form>
+{% endblock %}

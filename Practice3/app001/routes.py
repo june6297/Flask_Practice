@@ -1,8 +1,9 @@
-from flask import render_template, request, redirect, url_for, session
+from flask import render_template, request, redirect, url_for, session, flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 from app001 import app
+from datetime import datetime
 
 app.secret_key = 'woguddld'
 
@@ -74,6 +75,115 @@ def home():
         return render_template('home.html', username=session['username'])
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
+
+# # Flask 파이썬 코드
+# @app.route('/home', methods=['GET', 'POST'])
+# def home():
+#     error = None
+
+#     if 'loggedin' not in session:
+#         return redirect(url_for('login'))
+
+#     if request.method == 'POST':
+#         content = request.form['content']
+#         conn = mysql.connect()
+#         cursor = conn.cursor(dictionary=True)
+
+#         try:
+#             # 'content' 테이블에 'times' 컬럼이 있다고 가정합니다.
+#             sql = "INSERT INTO content (id, content, times) VALUES (%s, %s, %s)"
+#             cursor.execute(sql, (session['id'], content, datetime.now()))
+#             conn.commit()
+#             cursor.close()
+#         except Exception as e:
+#             error = f"콘텐츠 추가 중 오류 발생: {e}"
+
+#         return redirect(url_for("home"))
+
+#     elif request.method == 'GET':
+#         conn = mysql.connect()
+#         cursor = conn.cursor(dictionary=True)
+#         sql = "SELECT content, id, times FROM content ORDER BY times desc"
+#         cursor.execute(sql)
+#         data = cursor.fetchall()
+
+#         data_list = []
+
+#         for obj in data:
+#             data_dic = {
+#                 'con': obj['content'],
+#                 'writer': obj['id'],
+#                 'time': obj['times']
+#             }
+#             data_list.append(data_dic)
+
+#         cursor.close()
+#         conn.close()
+
+#         return render_template('home.html', error=error, name=session['username'], data_list=data_list)
+
+#     return render_template('home.html', error=error, name=session['username'])
+
+
+
+@app.route('/board', methods=['GET', 'POST'])
+def board():
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        message = request.form['message']
+        timestamp = datetime.now()
+        username = session['username']
+
+        if message:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('INSERT INTO forum_messages (username, message, timestamp) VALUES (%s, %s, %s)',
+                           (username, message, timestamp))
+            mysql.connection.commit()
+            flash('메시지가 성공적으로 게시되었습니다!', 'success')
+        else:
+            flash('메시지는 비워둘 수 없습니다!', 'error')
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM forum_messages ORDER BY timestamp DESC')
+    posts = cursor.fetchall()
+
+    return render_template('board.html', posts=posts)
+
+@app.route('/edit_message/<int:message_id>', methods=['GET', 'POST'])
+def edit_message(message_id):
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM forum_messages WHERE id = %s', [message_id])
+    post = cursor.fetchone()
+
+    if request.method == 'POST':
+        new_message = request.form['new_message']
+        if new_message:
+            cursor.execute('UPDATE forum_messages SET message = %s WHERE id = %s', (new_message, message_id))
+            mysql.connection.commit()
+            flash('메시지가 성공적으로 수정되었습니다!', 'success')
+        else:
+            flash('새 메시지는 비워둘 수 없습니다!', 'error')
+        return redirect(url_for('board'))
+
+    return render_template('edit_message.html', post=post)
+
+
+@app.route('/delete_message/<int:message_id>', methods=['POST'])
+def delete_message(message_id):
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('DELETE FROM forum_messages WHERE id = %s', [message_id])
+    mysql.connection.commit()
+    flash('메시지가 성공적으로 삭제되었습니다!', 'success')
+
+    return redirect(url_for('board'))
 
 @app.route('/logout')
 def logout():

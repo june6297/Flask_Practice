@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    <!-- <h2>홈페이지</h2> -->
+    <p>{{ username }} 님 반갑습니다!</p>
+
+    <!-- <form method="POST" action="/home">
+        <p><label><textarea name="content" rows="4" cols="50"></textarea></label>&nbsp;&nbsp;&nbsp;<input type="submit" value="작성하기" onclick="alert('작성 완료!')"></p>
+    </form>
+
+    <table class="table">
+        <tr>
+            <th>내용</th>
+            <th>작성자</th>
+            <th>작성시간</th>
+        </tr>
+        {% for post in data_list %}
+            <tr>
+                <td>{{ post['con'] }}</td>
+                <td>{{ post['writer'] }}</td>
+                <td>{{ post['time'] }}</td>
+            </tr>
+        {% endfor %}
+    </table> -->
+{% endblock %}
+
+
